@@ -2,11 +2,12 @@ FROM ubuntu:latest
 MAINTAINER Jongheon Jeong <jongheonj@kaist.ac.kr>
 
 RUN apt-get update
-RUN apt-get install -y wget vim git apt-utils netcat
+RUN apt-get install -y wget git netcat
 RUN apt-get -o Dpkg::Options::="--force-overwrite" install -y openjdk-8-jdk
 RUN cd /opt/; wget http://apache.tt.co.kr//ant/binaries/apache-ant-1.10.1-bin.tar.gz
 RUN cd /opt/; tar -xzf apache-ant-1.10.1-bin.tar.gz
 RUN ln -s /opt/apache-ant-1.10.1 /opt/ant
+RUN rm -rf /opt/apache-ant-1.10.1-bin.tar.gz
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV ANT_HOME=/opt/ant
