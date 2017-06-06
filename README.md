@@ -25,6 +25,43 @@ Docker의 mysql 이미지를 기반으로, 테스트를 위한 MySQL DBMS를 구
 이 DBMS의 기반 스키마는 오픈소스로 공개되어 있는 [Employees Sample DB](https://github.com/datacharmer/test_db) 를 사용했다. """ 스키마 사진 추가"""". 이 스키마에 대한 정보 및 데이터는 `mysql/docker-entrypoint-initdb.d/` 에 저장되어 있다. 이것은 Dockerfile 상에서 컨테이너를 시작할 때 내부로 옮겨지게 되는데, mysql 컨테이너에서는 이 폴더 내부의 `.sql` 파일을 자동으로 초기화한다 ([관련 링크](https://hub.docker.com/r/library/mysql/)). 
 결론적으로, `docker build --tag cs494_db mysql` 명령을 통해 Employees DB가 초기화된, 프로젝트를 위한 DBMS Docker image를 build 할 수 있다. 
 
-### Arcus 환경 구성
+### Arcus 환경 구성: `docker build --tag arcus arcus`
 
-DBMS와 구분된, Arcus Docker를 구성했다. ubuntu:latest image를 기반으로, [arcus repository ](https://github.com/naver/arcus) 로부터 이를 build할 수 있었다. **Arcus를 build 하는 과정에서, 기존의 [arcus-zookeeper](https://github.com/naver/arcus-zookeeper) 는 jdk-1.9 이상에서 빌드하지 못한다는 사실을 발견했다. 이를 패치함으로써, arcus project에 [contribute](https://github.com/naver/arcus-zookeeper/pull/7) 할 수 있었다. ** 이후로는 jdk 버전이 높아도 정상적인 build가 가능해졌다. Arcus docker를 구성하는 과정은 `arcus/Dockerfile` 를 통해 스크립트화 했다. 
+DBMS와 구분된, Arcus Docker를 구성했다. ubuntu:latest image를 기반으로, [arcus repository ](https://github.com/naver/arcus) 로부터 이를 build할 수 있었다. Arcus를 build 하는 과정에서, 기존의 [arcus-zookeeper](https://github.com/naver/arcus-zookeeper) 는 jdk-1.9 이상에서 빌드하지 못한다는 사실을 발견했다. 이를 패치함으로써, arcus project에 [contribute](https://github.com/naver/arcus-zookeeper/pull/7) 할 수 있었다. 이후로는 jdk 버전이 높아도 정상적인 build가 가능해졌다. Arcus docker를 구성하는 과정은 `arcus/Dockerfile` 를 통해 스크립트화 했다. 
+
+### nGrinder 환경 구성
+
+테스팅을 위해, nGrinder 환경을 구성할 필요가 있었다. nGrinder는 naver에서 공개한 오픈소스 스트레스 테스팅 플랫폼이다. 소스코드도 물론 공개되어 있지만, nGrinder 의 경우 특히 [docker image](https://hub.docker.com/r/ngrinder/controller/)도 배포되어 있어 쉽게 환경을 구축할 수 있었다. 링크의 instruction을 따라 controller container와 agent container를 쉽게 만들 수 있다. 
+```
+# Run an nGrinder controller
+docker pull ngrinder/controller:latest
+docker run -d -v ./ngrinder-controller:/opt/ngrinder-controller -p 80:80 -p 16001:16001 -p 12000-12009:12000-12009 ngrinder/controller
+
+# Run an nGrinder agent
+docker pull ngrinder/agent:latest
+docker run -v ./ngrinder-agent:/opt/ngrinder-agent -d ngrinder/agent ctrl_ip:ctrl_web_port
+```
+
+### Docker network 설정
+
+위의 instruction은 각각 잘 동작하지만, 테스팅을 위해 각 컨테이너 간의 communication이 이루어져야 하는 경우 문제가 발생한다. 컨테이너 간 연결을 위해, docker에서는 `--link` 옵션이나 `network` 기능을 제공한다. `--link` 옵션은 추후에 사라질 예정이므로, 여기서는 `network` 기능을 통해 컨테이너 간 연결 환경을 구축했다.  일단 네트워크를 구성하게 되면, 각 컨테이너는 컨테이너의 이름을 통해 다른 컨테이너로 연결할 수 있다.  실제 구성은 아래와 같다. 한 가지 참고사항으로서, nGrinder-controller 의 경우 local browser 와의 연결을 용이하게 하기 위해 추가적으로 port forwarding 설정도 사용했다.  
+
+```
+# Create a new network
+docker network create cs494-network
+
+# DBMS
+docker run -d --name db --network cs494-network cs494_db
+
+# Arcus memcached
+docker run -dit --name arcus --network cs494-network arcus
+
+# nGrinder Controller 
+docker run -d --name ng_ctrl --network cs494-network -v ./ngrinder-controller:/opt/ngrinder-controller -p 80:80 -p 16001:16001 -p 12000-12009:12000-12009 ngrinder/controller
+
+# nGrinder Agent
+docker run -d --name ng_agent --network cs494-network -v ./ngrinder-agent:/opt/ngrinder-agent ngrinder/agent ng_ctrl:80
+``` 
+ 
+이렇게 구성된 네트워크에, 실제로 테스팅을 진행할 웹 서버용 컨테이너를 새로 추가했다. 이 서버의 목적은 1) mysql을 direct 하게 가져오는 것과 2) arcus를 사용하는 것의 차이를 알아보기 위함이다. 각 경우 마다 다른 서버 컨테이너를 사용해서 동시에 테스팅 하는 것도 가능하지만,  하나의 로칼 서버 리소스가 공유된다는 점이 동시에 테스팅을 진행하는 환경에서 실험의 주요 오차 요인이 될 가능성이 있다고 판단했다. 따라서 각각의 경우를 따로 실험하기로 결정했고, 그에 따라 웹 서버 역시 하나로 충분하게 되었다. 아래는 결과적인 네트워크 구성을 도식화 한 것이다. 
+""" 사진 """![enter image description here](%E3%85%81%E3%84%B4)
