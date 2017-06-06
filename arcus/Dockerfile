@@ -23,5 +23,3 @@ USER jongheonj
 
 RUN cd /home/jongheonj/; git clone https://github.com/naver/arcus.git
 RUN cd /home/jongheonj/arcus/scripts; ./build.sh
-
-RUN cd /home/jongheonj/arcus/scripts; ./arcus.sh quicksetup conf/local.sample.json
