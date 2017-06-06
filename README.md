@@ -26,8 +26,8 @@ Docker의 mysql 이미지를 기반으로, 테스트를 위한 MySQL DBMS를 구
 
 ![Sample DB의 스키마](https://github.com/jh-jeong/cs494_oss_project/blob/master/mysql/docker-entrypoint-initdb.d/images/employees.png)
 
-이 스키마에 대한 정보 및 데이터는 `mysql/docker-entrypoint-initdb.d/` 에 저장되어 있다. 이것은 Dockerfile 상에서 컨테이너를 시작할 때 내부로 옮겨지게 되는데, mysql 컨테이너에서는 이 폴더 내부의 `.sql` 파일을 자동으로 초기화한다 ([관련 링크](https://hub.docker.com/r/library/mysql/)). 
-결론적으로, `docker build --tag cs494_db mysql` 명령을 통해 Employees DB가 초기화된, 프로젝트를 위한 DBMS Docker image를 build 할 수 있다. 
+이 스키마에 대한 정보 및 데이터는 `mysql/docker-entrypoint-initdb.d/` 에 저장되어 있다. 이것은 Dockerfile 상에서 컨테이너를 시작할 때 내부로 옮겨지게 되는데, mysql 컨테이너에서는 이 폴더 내부의 `.sql` 파일을 자동으로 실행한다 ([관련 링크](https://hub.docker.com/r/library/mysql/)). 
+결론적으로, `docker build --tag cs494_db mysql` 명령을 통해 Employees DB가 초기화된 DBMS Docker image를 build 할 수 있다. 
 
 ### Arcus 환경 구성: `docker build --tag arcus arcus`
 
