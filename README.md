@@ -22,8 +22,12 @@
 ### DBMS 구성: `docker build --tag cs494_db mysql`
 
 Docker의 mysql 이미지를 기반으로, 테스트를 위한 MySQL DBMS를 구성했다. Docker가 설치된 상태에서, `docker pull mysql:latest`를 통해 mysql의 최신 Docker 이미지를 가져올 수 있다. 이 이미지와 `mysql/Dockerfile` 을 통해, 테스트 DBMS를 구성할 수 있다. `mysql/Dockerfile` 은 mysql docker의 기본적인 setting 및 스키마를 초기화하는 과정을 수행한다. 
-이 DBMS의 기반 스키마는 오픈소스로 공개되어 있는 [Employees Sample DB](https://github.com/datacharmer/test_db) 를 사용했다. """ 스키마 사진 추가"""". 이 스키마에 대한 정보 및 데이터는 `mysql/docker-entrypoint-initdb.d/` 에 저장되어 있다. 이것은 Dockerfile 상에서 컨테이너를 시작할 때 내부로 옮겨지게 되는데, mysql 컨테이너에서는 이 폴더 내부의 `.sql` 파일을 자동으로 초기화한다 ([관련 링크](https://hub.docker.com/r/library/mysql/)). 
-결론적으로, `docker build --tag cs494_db mysql` 명령을 통해 Employees DB가 초기화된, 프로젝트를 위한 DBMS Docker image를 build 할 수 있다. 
+이 DBMS의 기반 스키마는 오픈소스로 공개되어 있는 [Employees Sample DB](https://github.com/datacharmer/test_db) 를 사용했다.
+
+![Sample DB의 스키마](https://github.com/jh-jeong/cs494_oss_project/blob/master/mysql/docker-entrypoint-initdb.d/images/employees.png)
+
+이 스키마에 대한 정보 및 데이터는 `mysql/docker-entrypoint-initdb.d/` 에 저장되어 있다. 이것은 Dockerfile 상에서 컨테이너를 시작할 때 내부로 옮겨지게 되는데, mysql 컨테이너에서는 이 폴더 내부의 `.sql` 파일을 자동으로 실행한다 ([관련 링크](https://hub.docker.com/r/library/mysql/)). 
+결론적으로, `docker build --tag cs494_db mysql` 명령을 통해 Employees DB가 초기화된 DBMS Docker image를 build 할 수 있다. 
 
 ### Arcus 환경 구성: `docker build --tag arcus arcus`
 
@@ -63,5 +67,6 @@ docker run -d --name ng_ctrl --network cs494-network -v ./ngrinder-controller:/o
 docker run -d --name ng_agent --network cs494-network -v ./ngrinder-agent:/opt/ngrinder-agent ngrinder/agent ng_ctrl:80
 ``` 
  
-이렇게 구성된 네트워크에, 실제로 테스팅을 진행할 웹 서버용 컨테이너를 새로 추가했다. 이 서버의 목적은 1) mysql을 direct 하게 가져오는 것과 2) arcus를 사용하는 것의 차이를 알아보기 위함이다. 각 경우 마다 다른 서버 컨테이너를 사용해서 동시에 테스팅 하는 것도 가능하지만,  하나의 로칼 서버 리소스가 공유된다는 점이 동시에 테스팅을 진행하는 환경에서 실험의 주요 오차 요인이 될 가능성이 있다고 판단했다. 따라서 각각의 경우를 따로 실험하기로 결정했고, 그에 따라 웹 서버 역시 하나로 충분하게 되었다. 아래는 결과적인 네트워크 구성을 도식화 한 것이다. 
-""" 사진 """![enter image description here](%E3%85%81%E3%84%B4)
+이렇게 구성된 네트워크에, 실제로 테스팅을 진행할 웹 서버용 컨테이너를 새로 추가했다. 이 서버의 목적은 1) mysql을 direct 하게 가져오는 것과 2) arcus를 사용하는 것의 차이를 알아보기 위함이다. 각 경우 마다 다른 서버 컨테이너를 사용해서 동시에 테스팅 하는 것도 가능하지만,  하나의 로칼 서버 리소스가 공유된다는 점이 동시에 테스팅을 진행하는 환경에서 실험의 주요 오차 요인이 될 가능성이 있다고 판단했다. 따라서 각각의 경우를 따로 실험하기로 결정했고, 그에 따라 웹 서버 역시 하나로 충분하게 되었다. 아래는 결과적인 컨테이너 네트워크를 도식화 한 것이다. 
+
+![Testing network 구성](https://github.com/jh-jeong/cs494_oss_project/blob/master/network.png)
