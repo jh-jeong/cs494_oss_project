@@ -71,6 +71,8 @@ docker run -d --name ng_agent --network cs494-network -v ./ngrinder-agent:/opt/n
 
 ![Testing network 구성](https://github.com/jh-jeong/cs494_oss_project/blob/master/network.png)
 
+----------
+
 #### Web server 구성
 
 위의 도식에서 확인할 수 있듯, web server는 nGrinder 와 db 서버를 이어주는 역할을 한다. nGrinder 에서 HTTP request 를 사용하기 때문에, web server의 형태로 구현해야 했다. 이 서버의 경우 이전에 동일한 프로젝트를 수행했던 [Github repository](https://github.com/ducky-hong/cs494) 의 ruby + sinatra + thin base 웹서버를 기반으로 본 프로젝트에 맞게 구현되었다. 이렇게 한 이유는, 1) ruby 기반으로 구현할 시 프로젝트에 필요한 기능을 매우 빠르게 구현할 수 있고, 2) 위 Repository 에서 이 기능을 간단한 형태로 구현해 두었기 때문이다. 본 프로젝트에서는 추가적으로, 구성을 더욱 단순화 하기 위해 ruby + sinatra 까지의 구성 과정을 pull 가능한 docker image로 대체했고, web server 를 구성하는 과정을 `web/Dockerfile` 을 통해 자동화했다. 
@@ -92,4 +94,7 @@ docker run -dit --network cs494-network --name web cs494_web
 
 각 API는 위에서 정의한 Employees database 에서 10000개의 일정한 employee data를 query한다. 매 query 마다 동일한 data를 얻기 때문에, arcus의 경우 data 전체를 memcached에 등록하고 사용한다.
 
+----------
+
 이로서 testing을 위한 network 구성이 완료되었다. nGrinder는 HTTP request를 보내는 script를 작성할 수 있도록 지원하고, 이것을 agent로 보내 testing을 수행한다. 그리고 web server는 그런 HTTP request를 받아, mysql server나 arcus server와 통신하며 이를 처리할 수 있다. 이제는 실제로 nGrinder를 통해 그러한 script를 작성하여 mysql server를 바로 사용할 때와 arcus server를 통할 때의 성능 차이를 비교할 수 있다. 
+ 
