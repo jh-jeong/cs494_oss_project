@@ -7,7 +7,7 @@ RUN apt-get -o Dpkg::Options::="--force-overwrite" install -y openjdk-8-jdk
 RUN cd /opt/; wget http://apache.tt.co.kr//ant/binaries/apache-ant-1.10.1-bin.tar.gz
 RUN cd /opt/; tar -xzf apache-ant-1.10.1-bin.tar.gz
 RUN ln -s /opt/apache-ant-1.10.1 /opt/ant
-RUN rm -rf /opt/apache-ant-1.10.1-bin.tar.gz
+RUN rm /opt/apache-ant-1.10.1-bin.tar.gz
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV ANT_HOME=/opt/ant
@@ -24,3 +24,7 @@ USER jongheonj
 
 RUN cd /home/jongheonj/; git clone https://github.com/naver/arcus.git
 RUN cd /home/jongheonj/arcus/scripts; ./build.sh
+
+COPY start.sh /home/jongheonj/
+
+CMD /home/jongheonj/start.sh
