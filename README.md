@@ -70,3 +70,31 @@ docker run -d --name ng_agent --network cs494-network -v ./ngrinder-agent:/opt/n
 이렇게 구성된 네트워크에, 실제로 테스팅을 진행할 웹 서버용 컨테이너를 새로 추가했다. 이 서버의 목적은 1) mysql을 direct 하게 가져오는 것과 2) arcus를 사용하는 것의 차이를 알아보기 위함이다. 각 경우 마다 다른 서버 컨테이너를 사용해서 동시에 테스팅 하는 것도 가능하지만,  하나의 로칼 서버 리소스가 공유된다는 점이 동시에 테스팅을 진행하는 환경에서 실험의 주요 오차 요인이 될 가능성이 있다고 판단했다. 따라서 각각의 경우를 따로 실험하기로 결정했고, 그에 따라 웹 서버 역시 하나로 충분하게 되었다. 아래는 결과적인 컨테이너 네트워크를 도식화 한 것이다. 
 
 ![Testing network 구성](https://github.com/jh-jeong/cs494_oss_project/blob/master/network.png)
+
+----------
+
+#### Web server 구성
+
+위의 도식에서 확인할 수 있듯, web server는 nGrinder 와 db 서버를 이어주는 역할을 한다. nGrinder 에서 HTTP request 를 사용하기 때문에, web server의 형태로 구현해야 했다. 이 서버의 경우 이전에 동일한 프로젝트를 수행했던 [Github repository](https://github.com/ducky-hong/cs494) 의 ruby + sinatra + thin base 웹서버를 기반으로 본 프로젝트에 맞게 구현되었다. 이렇게 한 이유는, 1) ruby 기반으로 구현할 시 프로젝트에 필요한 기능을 매우 빠르게 구현할 수 있고, 2) 위 Repository 에서 이 기능을 간단한 형태로 구현해 두었기 때문이다. 본 프로젝트에서는 추가적으로, 구성을 더욱 단순화 하기 위해 ruby + sinatra 까지의 구성 과정을 pull 가능한 docker image로 대체했고, web server 를 구성하는 과정을 `web/Dockerfile` 을 통해 자동화했다. 
+```
+# Build a web server.
+docker pull erikap/ruby-sinatra:latest
+docker build --tag cs494_web web
+
+# Run the web server.
+# Be aware that the container 'web' should be inside the network 'cs494-network',
+# which should be defined before it.
+docker run -dit --network cs494-network --name web cs494_web
+```
+
+`web` container 는 2개의 GET API를 가진다.
+
+ - `GET /mysql`: mysql db 서버에서 직접 data를 query 해서 가져온다.
+ - `GET /arcus`: arcus 서버에 data가 있을 시 그것을 가져온다. data가 없을 경우, mysql 서버에서 data를 가져온 뒤 arcus 서버에 등록한다.
+
+각 API는 위에서 정의한 Employees database 에서 10000개의 일정한 employee data를 query한다. 매 query 마다 동일한 data를 얻기 때문에, arcus의 경우 data 전체를 memcached에 등록하고 사용한다.
+
+----------
+
+이로서 testing을 위한 network 구성이 완료되었다. nGrinder는 HTTP request를 보내는 script를 작성할 수 있도록 지원하고, 이것을 agent로 보내 testing을 수행한다. 그리고 web server는 그런 HTTP request를 받아, mysql server나 arcus server와 통신하며 이를 처리할 수 있다. 이제는 실제로 nGrinder를 통해 그러한 script를 작성하여 mysql server를 바로 사용할 때와 arcus server를 통할 때의 성능 차이를 비교할 수 있다. 
+ 
