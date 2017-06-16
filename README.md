@@ -103,7 +103,7 @@ HTTP API가 주어진다면, nGrinder 에서 test case를 만드는 것은 매�
 
 ![nGrinder에서 script를 만드는 과정](https://github.com/jh-jeong/cs494_oss_project/blob/master/making_script.PNG)  
 
-각 script를 이용하면 test를 수행할 수 있다. 각각의 test는 3분 동안 1개의 agent를 통해 진행되었다. 결과적으로, `GET /mysql`의 경우 전체적으로 낮은 throughput을 보인 반면, `GET /arcus` 의 경우 2배 정도의 평균 TPS 향상이 있었다. 이는 memcached의 활용이 localhost 환경에서도 큰 성능향상을 가져다준다는 사실을 보여준다. 실제 환경에서는 memcached의 장점을 활용할 수 있는 포인트가 더 다양하고, 그에 따라 더 큰 성능 향상을 기대할 수 있다. 실험에 대한 결과를 `experiment/results` 에 `.csv` 형식으로 export하여 보존했다. 해당 파일에는 TPS 뿐만 아니라 응답시간, 트래픽 등에 대한 비교도 포함되어있다. 아래 그래프는 위: `GET /mysql` 의 TPS 그래프 / 아래: `GET /arcus` 의 TPS 그래프를 보여준다.
+각 script를 이용하면 test를 수행할 수 있다. 각각의 test는 3분 동안 1개의 agent를 통해 진행되었다. 결과적으로, `GET /mysql`의 경우 전체적으로 낮은 TPS 보인 반면, `GET /arcus` 의 경우 2배 정도의 평균 TPS 향상이 있었다. 이는 memcached의 활용이 localhost 환경에서도 큰 성능향상을 가져다준다는 사실을 보여준다. 실제 환경에서는 memcached의 장점을 활용할 수 있는 포인트가 더 다양하고, 그에 따라 더 큰 성능 향상을 기대할 수 있다. 실험에 대한 결과를 `experiment/results` 에 `.csv` 형식으로 export하여 보존했다. 해당 파일에는 TPS 뿐만 아니라 응답시간, 트래픽 등에 대한 비교도 포함되어있다. 아래 그래프는 위: `GET /mysql` 의 TPS 그래프 / 아래: `GET /arcus` 의 TPS 그래프를 보여준다.
 
 ![mysql query에 대한 TPS](https://github.com/jh-jeong/cs494_oss_project/blob/master/experiment/results/mysql.PNG)
 
